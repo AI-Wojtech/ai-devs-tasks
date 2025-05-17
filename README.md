@@ -1,6 +1,3 @@
-Poniżej znajdziesz poprawioną i poprawnie sformatowaną wersję Twojego `README.md` w stylu Markdown. Dodałem nagłówki, poprawiłem wcięcia i wyrównałem sekcje kodowe:
-
-````markdown
 # AI Devs Tasks
 
 ## Configuration
