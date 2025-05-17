@@ -1,0 +1,9 @@
+{
+  "OpenAI": {
+    "URL": "https://api.openai.com/v1/",
+    "KEY": "XXX",
+    "MODEL": "gpt-4.1-nano",
+    "DEFAULT_SYSTEM_PROMPT": "You are a helpful assistant."
+  },
+  "CENTRALA_API_KEY": "XXX"
+}

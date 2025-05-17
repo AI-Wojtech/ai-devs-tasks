@@ -1,0 +1,50 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "▶ Run Episode",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/bin/Debug/net9.0/ai-devs-tasks.dll",
+      "args": ["${input:episode}"],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "episode",
+      "type": "pickString",
+      "description": "Wybierz epizod do uruchomienia",
+      "options": [
+        "Episode01",
+        "Episode02",
+        "Episode03",
+        "Episode04",
+        "Episode05",
+        "Episode06",
+        "Episode07",
+        "Episode08",
+        "Episode09",
+        "Episode10",
+        "Episode11",
+        "Episode12",
+        "Episode13",
+        "Episode14",
+        "Episode15",
+        "Episode16",
+        "Episode17",
+        "Episode18",
+        "Episode19",
+        "Episode20",
+        "Episode21",
+        "Episode22",
+        "Episode23",
+        "Episode24",
+        "Episode25"
+      ]
+    }
+  ]
+}

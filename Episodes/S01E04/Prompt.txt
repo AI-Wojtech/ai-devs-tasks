@@ -1,0 +1,7 @@
+Przekaż TYLKO tego JSONA, przetłumacz kierunki na angielski
+
+{
+
+"steps:" "GÓRA, GÓRA, PRAWO, PRAWO, DÓŁ, DÓŁ, PRAWO, PRAWO, PRAWO"
+
+}
