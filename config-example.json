@@ -5,5 +5,9 @@
     "MODEL": "gpt-4.1-nano",
     "DEFAULT_SYSTEM_PROMPT": "You are a helpful assistant."
   },
-  "CENTRALA_API_KEY": "XXX"
+  "CENTRALA_API_KEY": "XXX",
+  "Qdrant": {
+    "URL":"XXX",
+    "API_KEY": "XXX"
+  }
 }

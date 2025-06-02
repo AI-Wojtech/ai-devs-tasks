@@ -96,15 +96,32 @@ public class OpenAIService
             }
         };
 
+
         foreach (var path in imagePaths)
         {
-            var imageBytes = await File.ReadAllBytesAsync(path);
-            var base64 = Convert.ToBase64String(imageBytes);
+            string base64;
+
+            if (path.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                //get external file from URL
+                using var httpClient = new HttpClient();
+                var imageBytes = await httpClient.GetByteArrayAsync(path);
+                base64 = Convert.ToBase64String(imageBytes);
+            }
+            else
+            {
+                //local file
+                var imageBytes = await File.ReadAllBytesAsync(path);
+                base64 = Convert.ToBase64String(imageBytes);
+            }
 
             contentList.Add(new
             {
                 type = "image_url",
-                image_url = new { url = $"data:image/png;base64,{base64}" }
+                image_url = new
+                {
+                    url = $"data:image/png;base64,{base64}"
+                }
             });
         }
 
@@ -127,29 +144,57 @@ public class OpenAIService
 
 
 
-    public async Task<string> TranscribeWithOpenAI(string filePath)
+    public async Task<string> TranscribeWithOpenAI(string filePathOrUrl)
     {
-        using var form = new MultipartFormDataContent();
-        var fileStream = File.OpenRead(filePath);
-        var fileName = Path.GetFileName(filePath);
+        string tempFilePath = null;
+        Stream fileStream;
 
-        form.Add(new StreamContent(fileStream), "file", fileName);
-        form.Add(new StringContent("whisper-1"), "model");
-
-        if (_client != null)
+        try
         {
-
-            var response = await _client.PostAsync("audio/transcriptions", form);
-            response.EnsureSuccessStatusCode();
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var parsed = JsonDocument.Parse(responseBody);
-            if (parsed.RootElement.TryGetProperty("text", out var textElement))
+            if (filePathOrUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
             {
-                return textElement.GetString() ?? " Missing text response.";
+                //get file from External URL
+                using var httpClient = new HttpClient();
+                var bytes = await httpClient.GetByteArrayAsync(filePathOrUrl);
+                tempFilePath = Path.GetTempFileName();
+                await File.WriteAllBytesAsync(tempFilePath, bytes);
+                fileStream = File.OpenRead(tempFilePath);
+            }
+            else
+            {
+                //local file
+                fileStream = File.OpenRead(filePathOrUrl);
+            }
+
+            var fileName = Path.GetFileName(filePathOrUrl);
+
+            using var form = new MultipartFormDataContent();
+            form.Add(new StreamContent(fileStream), "file", fileName);
+            form.Add(new StringContent("whisper-1"), "model");
+
+            if (_client != null)
+            {
+                var response = await _client.PostAsync("audio/transcriptions", form);
+                response.EnsureSuccessStatusCode();
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                var parsed = JsonDocument.Parse(responseBody);
+                if (parsed.RootElement.TryGetProperty("text", out var textElement))
+                {
+                    return textElement.GetString() ?? " Missing text response.";
+                }
+            }
+
+            return "GetAnswerAsync Error";
+        }
+        finally
+        {
+            // Wyczyść tymczasowy plik
+            if (tempFilePath != null && File.Exists(tempFilePath))
+            {
+                File.Delete(tempFilePath);
             }
         }
-
-        return GetType().Name + " GetAnswerAsync Error";
     }
 
     public async Task<string> CreateImageAsync(string prompt, string model = "dall-e-3", string size = "1024x1024", int numberOfImagesToGenerate = 1)
@@ -196,5 +241,45 @@ public class OpenAIService
         }
 
         return GetType().Name + "CreateImageAsync Error";
+    }
+
+    public async Task<OpenAIEmbeddingResponseModel> GetEmbeddingAsync(string text, string model = "text-embedding-3-large")
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            throw new ArgumentException("Text cannot be null or empty.", nameof(text));
+        }
+
+        var payload = new
+        {
+            model = model,
+            input = text
+        };
+
+        var json = JsonSerializer.Serialize(payload);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        try
+        {
+            var response = await _client.PostAsync("embeddings", content);
+            response.EnsureSuccessStatusCode();
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var embeddingResponse = JsonSerializer.Deserialize<OpenAIEmbeddingResponseModel>(responseBody, options);
+            if (embeddingResponse?.Data == null || embeddingResponse.Data.Length == 0)
+            {
+                Console.WriteLine($"Error: No embedding data in OpenAI response: {responseBody}");
+                throw new Exception("No embedding data in OpenAI response.");
+            }
+
+            return embeddingResponse;
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Embedding Error: {ex.Message}");
+            throw;
+        }
     }
 }
