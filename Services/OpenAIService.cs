@@ -24,11 +24,11 @@ public class OpenAIService
 
     }
 
-    public async Task<string> GetAnswerAsync(string? question = null, string? systemPrompt = null)
+    public async Task<string> GetAnswerAsync(string? question = null, string? systemPrompt = null, string model = "")
     {
         var payload = new
         {
-            model = _model,
+            model = model != string.Empty ? model : _model,
             messages = new[]
             {
                 new { role = "system", content = systemPrompt ?? _defaultSystemPrompt },

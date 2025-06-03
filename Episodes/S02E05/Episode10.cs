@@ -106,7 +106,7 @@ public class Episode10 : EpisodeBase
         Zwróć wyłącznie obiekt JSON, bez dodatkowych treści.
         ";
 
-                var userPrompt = $@"Kontekst:
+        var userPrompt = $@"Kontekst:
         {context}
 
         Pytania:
