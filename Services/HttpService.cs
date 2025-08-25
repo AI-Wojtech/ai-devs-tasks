@@ -17,6 +17,49 @@ public class HttpService
     {
         return await _httpClient.GetStringAsync(url);
     }
+    public async Task<string> GetHtmlAsync(string url)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync(url);
+
+            // NIE WOLNO wywoływać EnsureSuccessStatusCode tutaj
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Błąd pobierania strony: {url} — status {response.StatusCode}");
+                return string.Empty;
+            }
+
+            return await response.Content.ReadAsStringAsync();
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Wyjątek HttpRequestException dla URL {url}: {ex.Message}");
+            return string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Nieoczekiwany wyjątek dla URL {url}: {ex.Message}");
+            return string.Empty;
+        }
+    }
+
+
+    public async Task<T> GetJsonAsync<T>(string url)
+    {
+        var response = await _httpClient.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+        var json = await response.Content.ReadAsStringAsync();
+        return System.Text.Json.JsonSerializer.Deserialize<T>(json);
+    }
+
+    public async Task SendJsonAsync(string url, object payload)
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(payload);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var response = await _httpClient.PostAsync(url, content);
+        response.EnsureSuccessStatusCode();
+    }
 
     public async Task<string> PostAsync(string url, HttpContent content)
     {

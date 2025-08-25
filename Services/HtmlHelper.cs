@@ -162,6 +162,20 @@ public static class HtmlHelper
         return converter.Convert(html);
     }
 
+    public static string ConvertHtmlToMarkdown2(string html)
+    {
+        var config = new Config
+        {
+            UnknownTags = Config.UnknownTagsOption.Drop, // usuwa dziwne znaczniki
+            GithubFlavored = true,                        // lepsze tabele i listy
+            RemoveComments = true,
+            SmartHrefHandling = true                      // konwertuje <a href="..."> poprawnie
+        };
+
+        var converter = new Converter(config);
+        return converter.Convert(html);
+    }
+
     private static readonly HttpClient _httpClient = new HttpClient();
 
 
